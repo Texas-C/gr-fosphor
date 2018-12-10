@@ -123,6 +123,42 @@ struct fosphor_cl_state
 		goto error;						\
 	}
 
+// check glCreateFromGLBuffer's result
+// because of opengl err 
+int cl_err_check_createFromGLBuffer( cl_int result, const char *err_msg)
+{
+	//CL_ERR_CHECK( result, err_msg);
+
+	fprintf(stderr, "CL msg:");
+	switch( result )
+	{
+		case CL_INVALID_CONTEXT:
+				fprintf(stderr, "[context] is not a valid context or was not created from a GL context.\n");
+				break;
+
+		case CL_INVALID_VALUE:
+				fprintf(stderr, "[values] specified in flags are not valid.\n");
+			 	break;
+
+		case CL_INVALID_GL_OBJECT:
+				fprintf(stderr, "[bufobj] is not a GL buffer object or is a GL buffer object but does not have an existing data store e or the size of buffer is 0.\n");
+				break;
+
+		case CL_OUT_OF_RESOURCES: 
+				fprintf(stderr, "failed to allocate resources required by the OpenCL implementation on the device.\n");
+				break;
+
+		case CL_OUT_OF_HOST_MEMORY: 
+				fprintf(stderr, "failed to allocate resources required by the OpenCL implementation on the host.\n");
+				break;
+
+		default:
+				printf("sucess\n");
+				break;	
+	}
+	return result;
+}
+
 
 static int
 cl_device_query(cl_device_id dev_id, struct fosphor_cl_features *feat)
@@ -477,6 +513,9 @@ cl_init_buffers_gl(struct fosphor *self)
 		fosphor_gl_get_shared_id(self, GL_ID_VBO_SPECTRUM),
 		&err
 	);
+
+	/* check gl error */
+	cl_err_check_createFromGLBuffer (err, "Unable to share spectrum VBO into OpenCL context");
 	CL_ERR_CHECK(err, "Unable to share spectrum VBO into OpenCL context");
 
 	/* All done */
